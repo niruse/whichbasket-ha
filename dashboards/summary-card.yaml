@@ -1,0 +1,5 @@
+# A small card for the home dashboard: where the list costs least, and how much it saves.
+#
+# Edit the dashboard → "Add card" → "Manual" → paste this → Save.
+type: custom:shopping-compare-web-card
+view: summary

@@ -1,0 +1,144 @@
+# A whole dashboard for the supermarket price comparison.
+#
+# Settings → Dashboards → "Add dashboard" → "New dashboard from scratch" → open it → ⋮ → "Edit dashboard" →
+# ⋮ → "Raw configuration editor" → replace everything with this file → Save.
+#
+# The entity ids are the integration's own (sensor.supermarket_…). If you follow a to-do list you already have
+# instead of the integration's own list, change todo.supermarket_list below to that list.
+title: קניות
+views:
+  - title: קניות
+    path: shopping
+    icon: mdi:cart-outline
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: הרשימה
+            icon: mdi:format-list-checks
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.supermarket_site
+                state: "off"
+            card:
+              type: markdown
+              content: ⚠️ אין כרגע חיבור לאתר ההשוואה. מוצגת ההשוואה האחרונה, והרשימה ממשיכה לעבוד.
+          - type: custom:shopping-compare-web-card
+            view: list
+            grid_options:
+              columns: full
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: איפה הכי זול
+            icon: mdi:trophy-outline
+          - type: markdown
+            content: |-
+              {% set best = states('sensor.supermarket_cheapest_branch') %}
+              {% if best not in ['unknown', 'unavailable', 'none', ''] %}
+              ### 🏆 {{ best }}
+
+              כל הרשימה: **₪{{ '%.2f' | format(states('sensor.supermarket_cheapest_total') | float(0)) }}**
+              {% set saving = states('sensor.supermarket_saving') | float(0) %}
+              {% if saving > 0 %} · חיסכון מול הסניף היקר: **₪{{ '%.2f' | format(saving) }}**{% endif %}
+              {% set missing = state_attr('sensor.supermarket_cheapest_branch', 'missing') | int(0) %}
+              {% if missing %}
+
+              חסרים שם {{ missing }} מוצרים, ונספרו לפי הסניף הזול הבא.{% endif %}
+              {% set other = state_attr('sensor.supermarket_cheapest_branch', 'other_size') | int(0) %}
+              {% if other %}
+
+              ⚠️ {{ other }} מוצרים נמצאו שם רק בגודל אחר ולא נספרו בסכום.{% endif %}
+              {% else %}
+              עוד אין השוואה. הוסיפו מוצרים לרשימה.
+              {% endif %}
+          - type: tile
+            entity: sensor.supermarket_cheapest_total
+            name: כל הרשימה בסניף הזול
+            grid_options:
+              columns: 6
+          - type: tile
+            entity: sensor.supermarket_saving
+            name: חיסכון
+            grid_options:
+              columns: 6
+          - type: tile
+            entity: sensor.supermarket_list_items
+            name: פריטים ברשימה
+            grid_options:
+              columns: 6
+          - type: tile
+            entity: button.supermarket_compare_now
+            name: השוואה עכשיו
+            icon: mdi:refresh
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.supermarket_compare_now
+            grid_options:
+              columns: 6
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: הסניפים שבחרתם
+            icon: mdi:store-outline
+          - type: markdown
+            content: |-
+              {% set rows = states.sensor
+                | selectattr('entity_id', 'match', 'sensor.supermarket_branch_')
+                | selectattr('attributes.whole_list', 'defined')
+                | sort(attribute='attributes.whole_list') | list %}
+              {% if rows %}
+              | סניף | כל הרשימה | נמצאו |
+              |:--|--:|--:|
+              {% for s in rows -%}
+              | {{ '🏆 ' if s.attributes.cheapest }}{{ s.attributes.branch }} | ₪{{ '%.2f' | format(s.attributes.whole_list) }} | {{ s.attributes.found }}{{ ' (חסרים ' ~ s.attributes.missing ~ ')' if s.attributes.missing }} |
+              {% endfor %}
+              {% else %}
+              ההשוואה תופיע כאן אחרי שתוסיפו מוצרים לרשימה.
+              {% endif %}
+          - type: statistics-graph
+            title: הרשימה בסניף הזול, לאורך זמן
+            entities:
+              - sensor.supermarket_cheapest_total
+            stat_types:
+              - mean
+              - min
+              - max
+            period: day
+            days_to_show: 30
+            chart_type: line
+          - type: tile
+            entity: sensor.supermarket_prices_updated
+            name: המחירים עודכנו
+            grid_options:
+              columns: 12
+
+  - title: השוואה
+    path: compare
+    icon: mdi:scale-balance
+    type: panel
+    cards:
+      - type: custom:shopping-compare-web-card
+        view: compare
+
+  - title: רשימה ב-Home Assistant
+    path: todo
+    icon: mdi:clipboard-list-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: הרשימה כרשימת מטלות
+          - type: todo-list
+            entity: todo.supermarket_list
+            grid_options:
+              columns: full

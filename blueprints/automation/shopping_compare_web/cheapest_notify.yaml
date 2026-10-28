@@ -1,0 +1,103 @@
+blueprint:
+  name: "Supermarket price compare: where it's cheapest today"
+  description: >-
+    On the days and at the time you choose, a phone notification says which of your branches has the whole
+    shopping list cheapest, what it costs and how much it saves. Tapping it opens that chain's cart when the
+    site can fill one. Sent only when the list has enough items and the saving is worth it.
+
+    התראה לטלפון בימים ובשעה שתבחרו: באיזה סניף כל הרשימה הכי זולה, כמה היא עולה וכמה חוסכים.
+  domain: automation
+  homeassistant:
+    min_version: 2025.1.0
+  input:
+    notify_device:
+      name: Phone / טלפון
+      description: The Home Assistant app on this phone gets the notification.
+      selector:
+        device:
+          filter:
+            - integration: mobile_app
+    at:
+      name: Time / שעה
+      default: "17:30:00"
+      selector:
+        time: {}
+    days:
+      name: Days / ימים
+      default: [sun, mon, tue, wed, thu, fri]
+      selector:
+        select:
+          multiple: true
+          mode: list
+          options:
+            - { value: sun, label: "Sunday / ראשון" }
+            - { value: mon, label: "Monday / שני" }
+            - { value: tue, label: "Tuesday / שלישי" }
+            - { value: wed, label: "Wednesday / רביעי" }
+            - { value: thu, label: "Thursday / חמישי" }
+            - { value: fri, label: "Friday / שישי" }
+            - { value: sat, label: "Saturday / שבת" }
+    min_items:
+      name: At least this many items on the list / לפחות כך וכך פריטים ברשימה
+      default: 3
+      selector:
+        number:
+          min: 1
+          max: 100
+          mode: box
+    min_saving:
+      name: At least this saving (₪) / חיסכון של לפחות (₪)
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 1000
+          step: 1
+          unit_of_measurement: ₪
+          mode: box
+
+mode: single
+
+triggers:
+  - trigger: time
+    at: !input at
+
+variables:
+  min_items: !input min_items
+  min_saving: !input min_saving
+  best: "{{ states('sensor.supermarket_cheapest_branch') }}"
+  total: "{{ states('sensor.supermarket_cheapest_total') | float(0) }}"
+  saving: "{{ states('sensor.supermarket_saving') | float(0) }}"
+  items: "{{ states('sensor.supermarket_list_items') | int(0) }}"
+  cart: "{{ state_attr('sensor.supermarket_cheapest_branch', 'cart_url') or '' }}"
+  title: "🛒 {{ best }}"
+  message: >-
+    {{ items }} פריטים · ₪{{ '%.2f' | format(total) }}{% if saving > 0 %} · חיסכון ₪{{ '%.2f' | format(saving) }}{% endif %}
+
+conditions:
+  - condition: time
+    weekday: !input days
+  - condition: template
+    value_template: "{{ best not in ['unknown', 'unavailable', 'none', ''] }}"
+  - condition: template
+    value_template: "{{ items >= min_items and saving >= min_saving }}"
+
+actions:
+  - if:
+      - condition: template
+        value_template: "{{ cart != '' }}"
+    then:
+      - domain: mobile_app
+        type: notify
+        device_id: !input notify_device
+        title: "{{ title }}"
+        message: "{{ message }}"
+        data:
+          url: "{{ cart }}"
+          clickAction: "{{ cart }}"
+    else:
+      - domain: mobile_app
+        type: notify
+        device_id: !input notify_device
+        title: "{{ title }}"
+        message: "{{ message }}"

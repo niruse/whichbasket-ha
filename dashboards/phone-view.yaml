@@ -1,0 +1,39 @@
+# One view for a phone, to add to a dashboard you already use.
+#
+# Open the dashboard → ⋮ → "Edit dashboard" → ⋮ → "Raw configuration editor" → paste this under "views:"
+# (keep the two-space indent of the other views) → Save.
+- title: קניות
+  path: shopping-phone
+  icon: mdi:cart-outline
+  type: sections
+  max_columns: 1
+  sections:
+    - type: grid
+      cards:
+        - type: conditional
+          conditions:
+            - condition: state
+              entity: binary_sensor.supermarket_site
+              state: "off"
+          card:
+            type: markdown
+            content: ⚠️ אין כרגע חיבור לאתר ההשוואה. מוצגת ההשוואה האחרונה, והרשימה ממשיכה לעבוד.
+        - type: tile
+          entity: sensor.supermarket_cheapest_branch
+          name: הכי זול
+          grid_options:
+            columns: 12
+        - type: tile
+          entity: sensor.supermarket_cheapest_total
+          name: כל הרשימה
+          grid_options:
+            columns: 6
+        - type: tile
+          entity: sensor.supermarket_saving
+          name: חיסכון
+          grid_options:
+            columns: 6
+        - type: custom:shopping-compare-web-card
+          view: full
+          grid_options:
+            columns: full

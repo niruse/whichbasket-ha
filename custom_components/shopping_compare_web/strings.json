@@ -1,0 +1,133 @@
+{
+  "title": "Supermarket price compare",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Supermarket price compare",
+        "data": {
+          "city_name": "Town",
+          "site": "Site address"
+        },
+        "description": "Compares your shopping list in the branches near you, with the prices the website imports from the chains every night. Type your town.",
+        "data_description": {
+          "site": "Leave it as it is unless the site has moved."
+        }
+      },
+      "city": {
+        "title": "Choose the town",
+        "data": {
+          "city": "Town"
+        }
+      },
+      "branches": {
+        "title": "Branches to compare",
+        "data": {
+          "branches": "Branches"
+        },
+        "description": "Branches in and around {city}, up to 12."
+      },
+      "list": {
+        "title": "Shopping list",
+        "data": {
+          "list_source": "List",
+          "todo_entity": "Your to-do list"
+        },
+        "description": "The integration's own list, or a to-do list you already have (the shopping list Assist adds to, say), followed as it is."
+      }
+    },
+    "error": {
+      "cannot_connect": "Can't reach the site. Try again later.",
+      "invalid_url": "The address must start with https:// and have nothing after the host.",
+      "no_city": "No town with branches by that name. Try another spelling.",
+      "no_branches": "Choose at least one branch.",
+      "too_many": "Up to 12 branches.",
+      "need_list": "Choose the to-do list to follow (not this integration's own)."
+    },
+    "abort": {}
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Town",
+        "data": {
+          "city_name": "Town"
+        },
+        "description": "Type a town to change it, or keep this one."
+      },
+      "city": {
+        "title": "Choose the town",
+        "data": {
+          "city": "Town"
+        }
+      },
+      "branches": {
+        "title": "Branches to compare",
+        "data": {
+          "branches": "Branches"
+        },
+        "description": "Branches in and around {city}, up to 12."
+      },
+      "list": {
+        "title": "Shopping list",
+        "data": {
+          "list_source": "List",
+          "todo_entity": "Your to-do list"
+        },
+        "description": "The integration's own list, or a to-do list you already have (the shopping list Assist adds to, say), followed as it is."
+      }
+    },
+    "error": {
+      "cannot_connect": "Can't reach the site. Try again later.",
+      "invalid_url": "The address must start with https:// and have nothing after the host.",
+      "no_city": "No town with branches by that name. Try another spelling.",
+      "no_branches": "Choose at least one branch.",
+      "too_many": "Up to 12 branches.",
+      "need_list": "Choose the to-do list to follow (not this integration's own)."
+    }
+  },
+  "selector": {
+    "list_source": {
+      "options": {
+        "own": "The integration's own list",
+        "follow": "Follow a to-do list I already have"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "cheapest_branch": {
+        "name": "Cheapest branch"
+      },
+      "cheapest_total": {
+        "name": "Total at the cheapest"
+      },
+      "saving": {
+        "name": "Saving"
+      },
+      "list_items": {
+        "name": "Items on the list"
+      },
+      "prices_updated": {
+        "name": "Prices updated"
+      },
+      "branch_total": {
+        "name": "Total at {branch}"
+      }
+    },
+    "binary_sensor": {
+      "site": {
+        "name": "Site"
+      }
+    },
+    "button": {
+      "compare_now": {
+        "name": "Compare now"
+      }
+    },
+    "todo": {
+      "list": {
+        "name": "Supermarket list"
+      }
+    }
+  }
+}
