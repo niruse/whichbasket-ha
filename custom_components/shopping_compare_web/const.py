@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 DOMAIN = "shopping_compare_web"
-VERSION = "0.1.0"
-DEFAULT_SITE = "https://shopping-compare.onrender.com"
+VERSION = "0.2.0"
+DEFAULT_SITE = "https://whichbasket.com"
+# the site's old address, switched off later: saved entries move to DEFAULT_SITE
+OLD_SITES = ("https://shopping-compare.onrender.com", "http://shopping-compare.onrender.com")
 
 CONF_SITE = "site"
 CONF_CITY = "city"                # {"code": int, "he": str, "en": str}

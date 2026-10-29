@@ -14,7 +14,8 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-SITE = "https://shopping-compare.onrender.com"
+SITE = "https://whichbasket.com"
+OLD_SITE = "https://shopping-compare.onrender.com"
 JSON = {"content-type": "application/json"}
 HEALTH = {"ok": True, "importing": False, "matches": "admin", "built_at": "2026-10-28T05:20:00+00:00", "chains": []}
 CITIES = [{"code": 3000, "he": "ירושלים", "en": "Jerusalem", "ru": "Иерусалим", "branches": 40}]
