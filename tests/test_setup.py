@@ -2,14 +2,17 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from conftest import HEALTH, JSON, SITE, comparison
+from conftest import HEALTH, JSON, OLD_SITE, SITE, comparison
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMockResponse
 
-from custom_components.shopping_compare_web.const import CARD_URL, DOMAIN
+from custom_components.shopping_compare_web.config_flow import ShoppingCompareWebFlow
+from custom_components.shopping_compare_web.const import CARD_URL, DEFAULT_SITE, DOMAIN, OLD_SITES, VERSION
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 
 DATA = {"site": SITE, "city": {"code": 3000, "he": "ירושלים", "en": "Jerusalem"}, "branches": [200005, 300128],
@@ -216,3 +219,48 @@ async def test_the_card_is_on_every_dashboard(hass, entry, frontend_ready, hass_
     text = await resp.text()
     assert 'customElements.define("shopping-compare-web-card"' in text
     assert "innerHTML" not in text, "the card builds its page from nodes only"
+
+
+# ---- the site's move to whichbasket.com --------------------------------------------------------------
+@pytest.mark.parametrize("old", [OLD_SITE, f"{OLD_SITE}/", "http://shopping-compare.onrender.com"])
+async def test_an_entry_on_the_old_address_moves_to_the_new_one(hass, site, old):
+    entry = MockConfigEntry(domain=DOMAIN, data={**DATA, "site": old}, options={**DATA, "site": f"{old}/"},
+                            title="Jerusalem", version=1, minor_version=1)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+    assert (entry.version, entry.minor_version) == (1, 2)
+    assert entry.data["site"] == SITE == DEFAULT_SITE
+    assert entry.options["site"] == SITE
+    assert entry.runtime_data.api.base == SITE
+    assert {k: v for k, v in entry.data.items() if k != "site"} == {k: v for k, v in DATA.items() if k != "site"}
+
+
+async def test_an_entry_on_a_site_of_its_own_stays(hass, aioclient_mock):
+    own = "https://prices.example.co.il"
+    aioclient_mock.get(f"{own}/api/health", json=HEALTH, headers=JSON)
+    aioclient_mock.post(f"{own}/api/compare", json=comparison([]), headers=JSON)
+    entry = MockConfigEntry(domain=DOMAIN, data={**DATA, "site": own}, title="Jerusalem", version=1, minor_version=1)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.minor_version == 2
+    assert entry.data["site"] == own and not entry.options
+    assert entry.runtime_data.api.base == own
+
+
+async def test_an_entry_from_a_newer_version_is_not_touched(hass, site):
+    entry = MockConfigEntry(domain=DOMAIN, data={**DATA, "site": OLD_SITE}, title="Jerusalem", version=2)
+    entry.add_to_hass(hass)
+    assert not await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.state is ConfigEntryState.MIGRATION_ERROR
+    assert entry.data["site"] == OLD_SITE
+
+
+def test_the_version_is_bumped():
+    manifest = json.loads((Path(__file__).parent.parent / "custom_components" / DOMAIN / "manifest.json").read_text())
+    assert manifest["version"] == VERSION == "0.2.0"
+    assert manifest["documentation"] == f"{DEFAULT_SITE}/home-assistant"
+    assert ShoppingCompareWebFlow.VERSION == 1 and ShoppingCompareWebFlow.MINOR_VERSION == 2
+    assert OLD_SITE in OLD_SITES and DEFAULT_SITE == "https://whichbasket.com"

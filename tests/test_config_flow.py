@@ -68,7 +68,7 @@ async def test_names_in_the_set_up_are_plain_text(hass, aioclient_mock):
 async def test_the_site_address_must_be_https(hass, aioclient_mock):
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
     result = await hass.config_entries.flow.async_configure(result["flow_id"], {"city_name": "ירוש",
-                                                                                 "site": "http://shopping-compare.onrender.com"})
+                                                                                 "site": "http://whichbasket.com"})
     assert result["errors"] == {"site": "invalid_url"}
     assert not aioclient_mock.mock_calls, "nothing was sent to it"
 

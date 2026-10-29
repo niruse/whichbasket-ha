@@ -21,15 +21,15 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 
 @pytest.mark.parametrize("text, expected", [
-    ("https://shopping-compare.onrender.com", "https://shopping-compare.onrender.com"),
-    ("https://shopping-compare.onrender.com/", "https://shopping-compare.onrender.com"),
+    ("https://whichbasket.com", "https://whichbasket.com"),
+    ("https://whichbasket.com/", "https://whichbasket.com"),
     (" https://prices.example.co.il ", "https://prices.example.co.il"),
 ])
 def test_site_url_takes_an_https_origin(text, expected):
     assert site_url(text) == expected
 
 
-@pytest.mark.parametrize("text", ["http://shopping-compare.onrender.com", "https://user:pw@host.example",
+@pytest.mark.parametrize("text", ["http://whichbasket.com", "https://user:pw@host.example",
                                   "https://host.example/api", "https://host.example/?x=1", "https://host.example/#a",
                                   "ftp://host.example", "javascript:alert(1)", "", "https://"])
 def test_site_url_refuses_anything_else(text):

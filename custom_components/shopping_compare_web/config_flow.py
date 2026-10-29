@@ -144,6 +144,7 @@ class _Steps:
 
 class ShoppingCompareWebFlow(_Steps, ConfigFlow, domain=DOMAIN):
     VERSION = 1
+    MINOR_VERSION = 2  # 1.2: the site moved to whichbasket.com
 
     def __init__(self) -> None:
         self._init_state()
